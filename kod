@@ -1,0 +1,93 @@
+package com.example.automator;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.Button;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.gui.widget.button.Button;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.client.ClientRegistry;
+import net.minecraft.client.KeyMapping;
+import org.lwjgl.glfw.GLFW;
+
+@Mod("automator")
+public class AutomatorMod {
+
+    private static boolean isActive = false; // Включен ли мод
+    private static final Minecraft mc = Minecraft.getInstance();
+    private static KeyMapping openMenuKey; // Горячая клавиша
+
+    public AutomatorMod() {
+        MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    @SubscribeEvent
+    public void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
+        openMenuKey = new KeyMapping("key.automator.openmenu", GLFW.GLFW_KEY_P, "key.categories.misc");
+        event.register(openMenuKey);
+    }
+
+    @SubscribeEvent
+    public void onKeyInput(InputEvent.Key event) {
+        if (openMenuKey.consumeClick()) {
+            mc.setScreen(new AutomatorScreen());
+        }
+    }
+
+    @SubscribeEvent
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || !isActive || mc.player == null) return;
+
+        // Здесь выполняем автоматизацию
+        runAutomationLogic();
+    }
+
+    private void runAutomationLogic() {
+        // Тут будет повторение твоего питоновского скрипта:
+        // Нажатия клавиш, клики и прочее
+        // Пока что оставим пустым для примера
+    }
+
+    // Менюшка
+    public static class AutomatorScreen extends Screen {
+
+        protected AutomatorScreen() {
+            super(net.minecraft.network.chat.Component.literal("Automator Mod"));
+        }
+
+        @Override
+        protected void init() {
+            int centerX = this.width / 2;
+            int centerY = this.height / 2;
+            this.addRenderableWidget(Button.builder(
+                    net.minecraft.network.chat.Component.literal(isActive ? "Выключить" : "Включить"),
+                    button -> {
+                        isActive = !isActive;
+                        button.setMessage(net.minecraft.network.chat.Component.literal(isActive ? "Выключить" : "Включить"));
+                        onClose();
+                    })
+                    .pos(centerX - 50, centerY - 10)
+                    .size(100, 20)
+                    .build()
+            );
+        }
+
+        @Override
+        public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+            this.renderBackground(poseStack);
+            drawCenteredString(poseStack, this.font, this.title, this.width / 2, 20, 0xFFFFFF);
+            super.render(poseStack, mouseX, mouseY, partialTicks);
+        }
+
+        @Override
+        public boolean shouldCloseOnEsc() {
+            return true;
+        }
+    }
+}
